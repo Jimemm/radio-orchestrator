@@ -110,9 +110,9 @@ namespace myextension {
 
         radio.onReceivedValue(function (name: string, value: number) {
 
-            if (!paired && name === MSG_ASSIGN && value === myId) {
+            if (!paired && name === myId.toString()) {
                 paired = true
-                lastPeerSeen = control.millis()
+                group = value
                 radio.setGroup(group)
                 basic.showIcon(IconNames.Yes)
                 basic.showNumber(group)
@@ -155,7 +155,7 @@ namespace myextension {
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_LOST, myId)
 
-                    basic.showIcon(IconNames.No)
+                    // basic.showIcon(IconNames.No)
                 }
                 basic.pause(500)
             }
@@ -213,20 +213,18 @@ namespace myextension {
                 for (let i = 0; i < controllers.length; i++) {
                     let id = controllers[i]
                     let g = i + 2
-                    // serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
+                    serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
                     radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(MSG_ASSIGN, id)
-                    radio.setGroup(g)
+                    radio.sendValue(id.toString(), g)
                 }
 
                 // assign devices
                 for (let i = 0; i < devices.length; i++) {
                     let id = devices[i]
                     let g = i + 2
-                    // serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
+                    serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
                     radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(MSG_ASSIGN, id)
-                    radio.setGroup(g)
+                    radio.sendValue(id.toString(), g)
                 }
 
                 basic.pause(500)
