@@ -147,6 +147,7 @@ namespace myextension {
 
             // heartbeat from peer (on paired group)
             if (paired && name === MSG_HEART && value === peerId) {
+                serial.writeLine("[C] PEER REFRESS" + peerId)
                 lastPeerSeen = control.millis()
             }
         })
