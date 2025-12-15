@@ -176,11 +176,11 @@ namespace myextension {
             while (true) {
                 if (paired && peerId != 0 && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
 
-                    paired = false
                     peerId = 0
 
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_LOST, myId)
+                    radio.setGroup(group)
 
                     // basic.showIcon(IconNames.No)
                 }
@@ -230,7 +230,7 @@ namespace myextension {
                         serial.writeLine("[M] ADD CONTROLLER " + value)
                     }
 
-                }
+                } 
                 else if (r === ROLE_DEVICE && devices.indexOf(value) < 0) {
                     let next_available = devices.indexOf(-1)
                     if (next_available >= 0) {
