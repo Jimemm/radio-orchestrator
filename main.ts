@@ -120,21 +120,25 @@ namespace myextension {
                 paired = true
                 group = value
                 basic.showNumber(group)
+                serial.writeLine("[C] GROUP " + group)
                 // return
             }
 
             if (paired && name === myId.toString()) {
                 radio.sendValue(MSG_C_ACK, myId)
+                serial.writeLine("[C] SENT ACK " + myId)
             }
 
             if (paired && name === MSG_ACK && value === myId) {
                 basic.showIcon(IconNames.Yes)
                 radio.setGroup(group)
+                serial.writeLine("[C] GOT ACK " + value)
             }
 
             if (peerId == 0) {
                 if (name == MSG_HEART) {
                     peerId = value
+                    serial.writeLine("[C] FOUND PEER " + peerId)
                 }
             }
 
