@@ -91,7 +91,7 @@ namespace myextension {
     }
 
     // =========================
-    // CLIENT
+    // CLIENT (controller/device)
     // =========================
 
     function startClient(): void {
@@ -115,25 +115,34 @@ namespace myextension {
                 lastPeerSeen = control.millis()
                 radio.setGroup(group)
                 basic.showIcon(IconNames.Yes)
+                return
             }
 
+            // heartbeat from peer (on paired group)
             if (paired && name === MSG_HEART && value === peerId) {
                 lastPeerSeen = control.millis()
             }
         })
 
+        // pairing + heartbeat sender
         control.inBackground(function () {
             while (true) {
+
                 if (!paired) {
+                    // pairing request to master
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_PAIR, myId)
+                    basic.showIcon(IconNames.SmallDiamond)
                 } else {
+                    // heartbeat to peer
                     radio.sendValue(MSG_HEART, myId)
                 }
+
                 basic.pause(HEARTBEAT_INTERVAL)
             }
         })
 
+        // loss detection
         control.inBackground(function () {
             while (true) {
                 if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
@@ -162,7 +171,7 @@ namespace myextension {
 
         radio.onReceivedValue(function (name: string, value: number) {
 
-            // PAIR REQUEST
+            // pairing request
             if (name === MSG_PAIR) {
                 let r = getRole(value)
                 serial.writeLine("[M] PAIR REQ " + r + ":" + value)
@@ -177,7 +186,7 @@ namespace myextension {
                 }
             }
 
-            // LOST CLIENT
+            // lost client
             if (name === MSG_LOST) {
                 serial.writeLine("[M] LOST " + value)
 
@@ -195,9 +204,11 @@ namespace myextension {
             }
         })
 
+        // assignment loop
         control.inBackground(function () {
             while (true) {
 
+                // assign controllers
                 for (let i = 0; i < controllers.length; i++) {
                     let id = controllers[i]
                     let g = i + 2
@@ -207,6 +218,7 @@ namespace myextension {
                     radio.setGroup(g)
                 }
 
+                // assign devices
                 for (let i = 0; i < devices.length; i++) {
                     let id = devices[i]
                     let g = i + 2
