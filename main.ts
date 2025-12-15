@@ -28,7 +28,8 @@ namespace myextension {
 
     // message names
     const MSG_PAIR = "p"
-    const MSG_PEER = "e"
+    const MSG_ACK = "a"
+    const MSG_C_ACK = "c"
     const MSG_HEART = "h"
     const MSG_LOST = "l"
 
@@ -118,10 +119,17 @@ namespace myextension {
             if (!paired && name === myId.toString()) {
                 paired = true
                 group = value
-                radio.setGroup(group)
-                basic.showIcon(IconNames.Yes)
                 basic.showNumber(group)
                 // return
+            }
+
+            if (paired && name === myId.toString()) {
+                radio.sendValue(MSG_C_ACK, myId)
+            }
+
+            if (paired && name === MSG_ACK && value === myId) {
+                basic.showIcon(IconNames.Yes)
+                radio.setGroup(group)
             }
 
             if (peerId == 0) {
@@ -158,7 +166,7 @@ namespace myextension {
         // loss detection
         control.inBackground(function () {
             while (true) {
-                if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
+                if (paired && peerId != 0 && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
 
                     paired = false
                     peerId = 0
@@ -182,6 +190,20 @@ namespace myextension {
         serial.writeLine("[M] START")
 
         radio.onReceivedValue(function (name: string, value: number) {
+
+            if (name === MSG_C_ACK) {
+                let i = devices.indexOf(value)
+                if (i >= 0) {
+                    devices_ack[i] = true
+                    serial.writeLine("[M] LOST DEVICE " + value)
+                }
+
+                i = controllers.indexOf(value)
+                if (i >= 0) {
+                    controllers_ack[i] = true
+                    serial.writeLine("[M] LOST CONTROLLER " + value)
+                }
+            }
 
             // pairing request
             if (name === MSG_PAIR) {
@@ -245,6 +267,8 @@ namespace myextension {
                         serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
                         radio.setGroup(MASTER_GROUP)
                         radio.sendValue(id.toString(), g)
+                    } else {
+                        radio.sendValue(MSG_ACK, controllers[i])
                     }
                 }
 
@@ -256,6 +280,8 @@ namespace myextension {
                         serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
                         radio.setGroup(MASTER_GROUP)
                         radio.sendValue(id.toString(), g)
+                    } else {
+                        radio.sendValue(MSG_ACK, controllers[i])
                     }
                 }
 
