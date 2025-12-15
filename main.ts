@@ -115,7 +115,8 @@ namespace myextension {
                 lastPeerSeen = control.millis()
                 radio.setGroup(group)
                 basic.showIcon(IconNames.Yes)
-                return
+                basic.showNumber(group)
+                // return
             }
 
             // heartbeat from peer (on paired group)
