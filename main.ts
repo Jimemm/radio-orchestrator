@@ -102,6 +102,8 @@ namespace myextension {
 
     function startClient(): void {
 
+        serial.writeLine("[C] START")
+
         paired = false
         group = 0
         peerId = 0
