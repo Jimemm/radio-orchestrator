@@ -143,23 +143,23 @@ namespace myextension {
             }
         })
 
-        // loss detection
-        control.inBackground(function () {
-            while (true) {
-                if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
+        // // loss detection
+        // control.inBackground(function () {
+        //     while (true) {
+        //         if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
 
-                    paired = false
-                    peerId = 0
-                    group = 0
+        //             paired = false
+        //             peerId = 0
+        //             group = 0
 
-                    radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(MSG_LOST, myId)
+        //             radio.setGroup(MASTER_GROUP)
+        //             radio.sendValue(MSG_LOST, myId)
 
-                    // basic.showIcon(IconNames.No)
-                }
-                basic.pause(500)
-            }
-        })
+        //             // basic.showIcon(IconNames.No)
+        //         }
+        //         basic.pause(500)
+        //     }
+        // })
     }
 
     // =========================
@@ -187,22 +187,22 @@ namespace myextension {
                 }
             }
 
-            // lost client
-            if (name === MSG_LOST) {
-                serial.writeLine("[M] LOST " + value)
+            // // lost client
+            // if (name === MSG_LOST) {
+            //     serial.writeLine("[M] LOST " + value)
 
-                let i = controllers.indexOf(value)
-                if (i >= 0) {
-                    controllers.removeAt(i)
-                    serial.writeLine("[M] LOST CONTROLLER " + value)
-                }
+            //     let i = controllers.indexOf(value)
+            //     if (i >= 0) {
+            //         controllers.removeAt(i)
+            //         serial.writeLine("[M] LOST CONTROLLER " + value)
+            //     }
 
-                i = devices.indexOf(value)
-                if (i >= 0) {
-                    devices.removeAt(i)
-                    serial.writeLine("[M] LOST DEVICE " + value)
-                }
-            }
+            //     i = devices.indexOf(value)
+            //     if (i >= 0) {
+            //         devices.removeAt(i)
+            //         serial.writeLine("[M] LOST DEVICE " + value)
+            //     }
+            // }
         })
 
         // assignment loop
