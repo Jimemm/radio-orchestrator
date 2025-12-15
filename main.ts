@@ -164,6 +164,7 @@ namespace myextension {
                 } else {
                     // heartbeat to peer
                     radio.sendValue(MSG_HEART, myId)
+                    serial.writeLine("[C] HEARTBEAT " + myId )
                     basic.pause(HEARTBEAT_INTERVAL)
                 }
 
