@@ -23,11 +23,12 @@ namespace myextension {
 
     const MASTER_GROUP = 1
     const HEARTBEAT_INTERVAL = 500
-    const PEER_TIMEOUT = 3000
+    const PAIR_INTERVAL = 200
+    const PEER_TIMEOUT = 5 * HEARTBEAT_INTERVAL
 
     // message names
     const MSG_PAIR = "p"
-    const MSG_ASSIGN = "a"
+    const MSG_PEER = "e"
     const MSG_HEART = "h"
     const MSG_LOST = "l"
 
@@ -53,6 +54,10 @@ namespace myextension {
     // master state
     let controllers: number[] = []
     let devices: number[] = []
+
+    let controllers_ack: boolean[] = []
+    let devices_ack: boolean[] = []
+
 
     // =========================
     // ID HELPERS
@@ -119,6 +124,12 @@ namespace myextension {
                 // return
             }
 
+            if (peerId == 0) {
+                if (name == MSG_HEART) {
+                    peerId = value
+                }
+            }
+
             // heartbeat from peer (on paired group)
             if (paired && name === MSG_HEART && value === peerId) {
                 lastPeerSeen = control.millis()
@@ -134,32 +145,32 @@ namespace myextension {
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_PAIR, myId)
                     basic.showIcon(IconNames.SmallDiamond)
+                    basic.pause(PAIR_INTERVAL)
                 } else {
                     // heartbeat to peer
                     radio.sendValue(MSG_HEART, myId)
+                    basic.pause(HEARTBEAT_INTERVAL)
                 }
 
-                basic.pause(HEARTBEAT_INTERVAL)
             }
         })
 
-        // // loss detection
-        // control.inBackground(function () {
-        //     while (true) {
-        //         if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
+        // loss detection
+        control.inBackground(function () {
+            while (true) {
+                if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
 
-        //             paired = false
-        //             peerId = 0
-        //             group = 0
+                    paired = false
+                    peerId = 0
 
-        //             radio.setGroup(MASTER_GROUP)
-        //             radio.sendValue(MSG_LOST, myId)
+                    radio.setGroup(MASTER_GROUP)
+                    radio.sendValue(MSG_LOST, myId)
 
-        //             // basic.showIcon(IconNames.No)
-        //         }
-        //         basic.pause(500)
-        //     }
-        // })
+                    // basic.showIcon(IconNames.No)
+                }
+                basic.pause(500)
+            }
+        })
     }
 
     // =========================
@@ -178,53 +189,74 @@ namespace myextension {
                 serial.writeLine("[M] PAIR REQ " + r + ":" + value)
 
                 if (r === ROLE_CONTROLLER && controllers.indexOf(value) < 0) {
-                    controllers.push(value)
-                    serial.writeLine("[M] ADD CONTROLLER " + value)
+                    let next_available = controllers.indexOf(-1)
+                    if (next_available >= 0) {
+                        controllers[next_available] = value
+                        controllers_ack[next_available] = false
+                        serial.writeLine("[M] REASSIGN CONTROLLER " + value + " (" + next_available + ")")
+                    } else {
+                        controllers.push(value)
+                        controllers_ack.push(false)
+                        serial.writeLine("[M] ADD CONTROLLER " + value)
+                    }
+
                 }
                 else if (r === ROLE_DEVICE && devices.indexOf(value) < 0) {
-                    devices.push(value)
-                    serial.writeLine("[M] ADD DEVICE " + value)
+                    let next_available = devices.indexOf(-1)
+                    if (next_available >= 0) {
+                        devices[next_available] = value
+                        devices_ack[next_available] = false
+                        serial.writeLine("[M] REASSIGN DEVICE " + value + " (" + next_available + ")")
+                    } else {
+                        devices.push(value)
+                        devices_ack.push(false)
+                        serial.writeLine("[M] ADD DEVICE " + value)
+                    }
                 }
             }
 
-            // // lost client
-            // if (name === MSG_LOST) {
-            //     serial.writeLine("[M] LOST " + value)
+            // lost client
+            if (name === MSG_LOST) {
+                serial.writeLine("[M] LOST " + value)
 
-            //     let i = controllers.indexOf(value)
-            //     if (i >= 0) {
-            //         controllers.removeAt(i)
-            //         serial.writeLine("[M] LOST CONTROLLER " + value)
-            //     }
+                let i = controllers.indexOf(value)
+                if (i >= 0) {
+                    devices[i] = -1
+                    serial.writeLine("[M] LOST DEVICE " + value)
+                }
 
-            //     i = devices.indexOf(value)
-            //     if (i >= 0) {
-            //         devices.removeAt(i)
-            //         serial.writeLine("[M] LOST DEVICE " + value)
-            //     }
-            // }
+                i = devices.indexOf(value)
+                if (i >= 0) {
+                    controllers[i] = -1
+                    serial.writeLine("[M] LOST CONTROLLER " + value)
+                }
+            }
         })
 
         // assignment loop
         control.inBackground(function () {
-            while (true) {
 
+            while (true) {
                 // assign controllers
-                for (let i = 0; i < controllers.length; i++) {
-                    let id = controllers[i]
-                    let g = i + 2
-                    serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
-                    radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(id.toString(), g)
+                for (let i = 0; i < controllers_ack.length; i++) {
+                    if (!controllers_ack[i]) {
+                        let id = controllers[i]
+                        let g = i + 2
+                        serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
+                        radio.setGroup(MASTER_GROUP)
+                        radio.sendValue(id.toString(), g)
+                    }
                 }
 
                 // assign devices
-                for (let i = 0; i < devices.length; i++) {
-                    let id = devices[i]
-                    let g = i + 2
-                    serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
-                    radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(id.toString(), g)
+                for (let i = 0; i < devices_ack.length; i++) {
+                    if (!devices_ack[i]) {
+                        let id = devices[i]
+                        let g = i + 2
+                        serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
+                        radio.setGroup(MASTER_GROUP)
+                        radio.sendValue(id.toString(), g)
+                    }
                 }
 
                 basic.pause(500)
