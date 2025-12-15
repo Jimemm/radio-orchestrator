@@ -26,10 +26,10 @@ namespace myextension {
     const PEER_TIMEOUT = 3000
 
     // message names
-    const MSG_PAIR = "p"   // pairing request
-    const MSG_ASSIGN = "a" // assignment
-    const MSG_HEART = "h"  // heartbeat
-    const MSG_LOST = "l"   // lost peer
+    const MSG_PAIR = "p"
+    const MSG_ASSIGN = "a"
+    const MSG_HEART = "h"
+    const MSG_LOST = "l"
 
     // role numbers for encoding
     const ROLE_CONTROLLER = 1
@@ -91,7 +91,7 @@ namespace myextension {
     }
 
     // =========================
-    // CLIENT (controller/device)
+    // CLIENT
     // =========================
 
     function startClient(): void {
@@ -110,40 +110,30 @@ namespace myextension {
 
         radio.onReceivedValue(function (name: string, value: number) {
 
-            // assignment from master (on group 1)
             if (!paired && name === MSG_ASSIGN && value === myId) {
                 paired = true
                 lastPeerSeen = control.millis()
                 radio.setGroup(group)
                 basic.showIcon(IconNames.Yes)
-                return
             }
 
-            // heartbeat from peer (on paired group)
             if (paired && name === MSG_HEART && value === peerId) {
                 lastPeerSeen = control.millis()
             }
         })
 
-        // pairing + heartbeat sender
         control.inBackground(function () {
             while (true) {
-
                 if (!paired) {
-                    // pairing request to master
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_PAIR, myId)
-                    basic.showIcon(IconNames.SmallDiamond)
                 } else {
-                    // heartbeat to peer
                     radio.sendValue(MSG_HEART, myId)
                 }
-
                 basic.pause(HEARTBEAT_INTERVAL)
             }
         })
 
-        // loss detection
         control.inBackground(function () {
             while (true) {
                 if (paired && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
@@ -157,7 +147,6 @@ namespace myextension {
 
                     basic.showIcon(IconNames.No)
                 }
-
                 basic.pause(500)
             }
         })
@@ -169,46 +158,62 @@ namespace myextension {
 
     function startMaster(): void {
 
+        serial.writeLine("[M] START")
+
         radio.onReceivedValue(function (name: string, value: number) {
 
-            // pairing request
+            // PAIR REQUEST
             if (name === MSG_PAIR) {
                 let r = getRole(value)
+                serial.writeLine("[M] PAIR REQ " + r + ":" + value)
 
                 if (r === ROLE_CONTROLLER && controllers.indexOf(value) < 0) {
                     controllers.push(value)
+                    serial.writeLine("[M] ADD CONTROLLER " + value)
                 }
                 else if (r === ROLE_DEVICE && devices.indexOf(value) < 0) {
                     devices.push(value)
+                    serial.writeLine("[M] ADD DEVICE " + value)
                 }
             }
 
-            // lost client
+            // LOST CLIENT
             if (name === MSG_LOST) {
+                serial.writeLine("[M] LOST " + value)
+
                 let i = controllers.indexOf(value)
-                if (i >= 0) controllers.removeAt(i)
+                if (i >= 0) {
+                    controllers.removeAt(i)
+                    serial.writeLine("[M] LOST CONTROLLER " + value)
+                }
 
                 i = devices.indexOf(value)
-                if (i >= 0) devices.removeAt(i)
+                if (i >= 0) {
+                    devices.removeAt(i)
+                    serial.writeLine("[M] LOST DEVICE " + value)
+                }
             }
         })
 
-        // assignment loop
         control.inBackground(function () {
             while (true) {
 
-                // assign controllers
                 for (let i = 0; i < controllers.length; i++) {
+                    let id = controllers[i]
+                    let g = i + 2
+                    serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
                     radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(MSG_ASSIGN, controllers[i])
-                    radio.setGroup(i + 2)
+                    radio.sendValue(MSG_ASSIGN, id)
+                    radio.setGroup(g)
                 }
 
-                // assign devices
                 for (let i = 0; i < devices.length; i++) {
+                    let id = devices[i]
+                    let g = i + 2
+                    serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
                     radio.setGroup(MASTER_GROUP)
-                    radio.sendValue(MSG_ASSIGN, devices[i])
-                    radio.setGroup(i + 2)
+                    radio.sendValue(MSG_ASSIGN, id)
+                    radio.setGroup(g)
                 }
 
                 basic.pause(500)
