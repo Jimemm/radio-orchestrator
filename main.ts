@@ -213,7 +213,7 @@ namespace myextension {
                 for (let i = 0; i < controllers.length; i++) {
                     let id = controllers[i]
                     let g = i + 2
-                    serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
+                    // serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_ASSIGN, id)
                     radio.setGroup(g)
@@ -223,7 +223,7 @@ namespace myextension {
                 for (let i = 0; i < devices.length; i++) {
                     let id = devices[i]
                     let g = i + 2
-                    serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
+                    // serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_ASSIGN, id)
                     radio.setGroup(g)
