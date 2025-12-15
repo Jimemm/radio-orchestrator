@@ -24,7 +24,7 @@ namespace myextension {
     const MASTER_GROUP = 1
     const HEARTBEAT_INTERVAL = 500
     const PAIR_INTERVAL = 200
-    const PEER_TIMEOUT = 5 * HEARTBEAT_INTERVAL
+    const PEER_TIMEOUT = 10 * HEARTBEAT_INTERVAL
 
     // message names
     const MSG_PAIR = "p"
@@ -140,6 +140,7 @@ namespace myextension {
             if (peerId == 0) {
                 if (name == MSG_HEART) {
                     peerId = value
+                    lastPeerSeen = control.millis()
                     serial.writeLine("[C] FOUND PEER " + peerId)
                 }
             }
