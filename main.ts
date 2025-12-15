@@ -134,6 +134,7 @@ namespace myextension {
             if (paired && name === MSG_ACK && value === myId) {
                 basic.showIcon(IconNames.Yes)
                 radio.setGroup(group)
+                basic.showNumber(group)
                 serial.writeLine("[C] GOT ACK " + value)
             }
 
