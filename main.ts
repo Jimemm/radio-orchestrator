@@ -157,6 +157,7 @@ namespace myextension {
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_PAIR, myId)
                     basic.showIcon(IconNames.SmallDiamond)
+                    serial.writeLine("[C] PAIR " + group)
                     basic.pause(PAIR_INTERVAL)
                 } else {
                     // heartbeat to peer
