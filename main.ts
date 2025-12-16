@@ -39,13 +39,18 @@ namespace myextension {
     const ROLE_CONTROLLER = 1
     const ROLE_DEVICE = 2
 
+    // modes
+    const MODE_START = "start"
+    const MODE_STOP = "stop"
+    const MODE_PAIRING = "pairing"
+
     // =========================
     // GLOBAL STATE
     // =========================
 
     let started = false
     let role: MyRole = MyRole.Device
-    let mode = "pairing"
+    let mode = MODE_PAIRING
 
     // client state
     let paired = false
@@ -70,7 +75,7 @@ namespace myextension {
     export function startMode(): void {
         if (role !== MyRole.Master) return
 
-        mode = "start"
+        mode = MODE_START
         serial.writeLine("[M] MODE: START")
     }
 
@@ -78,7 +83,7 @@ namespace myextension {
     export function stopMode(): void {
         if (role !== MyRole.Master) return
 
-        mode = "stop"
+        mode = MODE_STOP
         serial.writeLine("[M] MODE: STOP")
     }
 
@@ -86,7 +91,7 @@ namespace myextension {
     export function pairingMode(): void {
         if (role !== MyRole.Master) return
 
-        mode = "pairing"
+        mode = MODE_PAIRING
         serial.writeLine("[M] MODE: START")
     }
 
@@ -139,7 +144,7 @@ namespace myextension {
         group = 0
         peerId = 0
 
-        mode = "pairing"
+        mode = MODE_PAIRING
 
         code = randint(1, 99999)
 
@@ -154,13 +159,13 @@ namespace myextension {
             if (name === MSG_STOP && value === myId) {
                 basic.showIcon(IconNames.No)
                 radio.setGroup(MASTER_GROUP)
-                mode = "stop"
+                mode = MODE_STOP
             }
 
-            if (mode === "stop" && name === MSG_START && value === myId) {
+            if (mode === MODE_STOP && name === MSG_START && value === myId) {
                 radio.setGroup(group)
                 basic.showNumber(group)
-                mode = "pairing"
+                mode = MODE_PAIRING
             } else {
                 if (!paired && name === myId.toString()) {
                     paired = true
@@ -225,7 +230,7 @@ namespace myextension {
         // loss detection
         control.inBackground(function () {
             while (true) {
-                if (mode =="pairing" && paired && peerId != 0 && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
+                if (mode === MODE_PAIRING && paired && peerId != 0 && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
 
                     peerId = 0
 
@@ -320,7 +325,7 @@ namespace myextension {
         // assignment loop
         control.inBackground(function () {
             while (true) {
-                if (mode === "pairing") {
+                if (mode === MODE_PAIRING) {
                     // assign controllers
                     for (let i = 0; i < controllers_ack.length; i++) {
                         if (!controllers_ack[i]) {
@@ -348,7 +353,7 @@ namespace myextension {
                     }
 
                     basic.pause(500)
-                } else if (mode === "start") {
+                } else if (mode === MODE_START) {
                     for (let i = 0; i < controllers.length; i++) {
                         let id = controllers[i]
                         radio.sendValue(MSG_START, id)
@@ -357,7 +362,8 @@ namespace myextension {
                         let id = devices[i]
                         radio.sendValue(MSG_START, id)
                     }
-                } else if (mode === "stop") {
+                    mode = MODE_PAIRING
+                } else if (mode === MODE_STOP) {
                     for (let i = 0; i < controllers.length; i++) {
                         radio.setGroup(i)
                         basic.showNumber(i)
@@ -372,6 +378,8 @@ namespace myextension {
                         radio.sendValue(MSG_STOP, id)
                         serial.writeLine("G(" + i + ") Stop Device: " + id)
                     }
+                    radio.setGroup(MASTER_GROUP)
+                    mode = MODE_PAIRING
                 }
             }
         })
