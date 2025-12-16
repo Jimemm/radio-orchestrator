@@ -34,6 +34,7 @@ namespace myextension {
     const MSG_LOST = "l"
     const MSG_START = "st"
     const MSG_STOP = "sp"
+    const MSG_STOP_RET = "sr"
 
     // role numbers for encoding
     const ROLE_CONTROLLER = 1
@@ -158,6 +159,11 @@ namespace myextension {
 
             if (name === MSG_STOP && value === myId) {
                 basic.showIcon(IconNames.No)
+                mode = MODE_STOP
+            }
+
+            if (name === MSG_STOP_RET && value === myId) {
+                basic.showArrow(ArrowNames.North)
                 radio.setGroup(MASTER_GROUP)
                 mode = MODE_STOP
             }
@@ -196,6 +202,10 @@ namespace myextension {
                 }
 
                 // heartbeat from peer (on paired group)
+                if (mode === MODE_STOP) {
+                    lastPeerSeen = control.millis()
+                }
+
                 if (paired && name === MSG_HEART && value === peerId) {
                     serial.writeLine("[C] PEER REFRESS" + peerId)
                     lastPeerSeen = control.millis()
@@ -359,6 +369,8 @@ namespace myextension {
                         radio.sendValue(MSG_START, id)
                     }
                     for (let i = 0; i < devices.length; i++) {
+                        let g = i + 2
+                        radio.setGroup(g)
                         let id = devices[i]
                         radio.sendValue(MSG_START, id)
                     }
@@ -369,7 +381,7 @@ namespace myextension {
                         radio.setGroup(g)
                         basic.showNumber(g)
                         let id = controllers[i]
-                        radio.sendValue(MSG_STOP, id)
+                        radio.sendValue(MSG_STOP_RET, id)
                         serial.writeLine("G(" + g + ") Stop Controller: " + id)
                     }
                     for (let i = 0; i < devices.length; i++) {
@@ -383,6 +395,7 @@ namespace myextension {
                     radio.setGroup(MASTER_GROUP)
                     mode = MODE_PAIRING
                 }
+                basic.pause(500)
             }
         })
     }
