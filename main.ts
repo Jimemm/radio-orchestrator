@@ -173,7 +173,7 @@ namespace myextension {
                 basic.showNumber(group)
                 mode = MODE_PAIRING
             } else {
-                if (mode !== MODE_STOP) {
+                if (mode === MODE_PAIRING) {
                     if (!paired && name === myId.toString()) {
                         paired = true
                         group = value
@@ -206,9 +206,7 @@ namespace myextension {
                 // heartbeat from peer (on paired group)
                 if (mode === MODE_STOP) {
                     lastPeerSeen = control.millis()
-                }
-
-                if (paired && name === MSG_HEART && value === peerId) {
+                } else if (paired && name === MSG_HEART && value === peerId) {
                     serial.writeLine("[C] PEER REFRESS" + peerId)
                     lastPeerSeen = control.millis()
                 }
@@ -403,7 +401,7 @@ namespace myextension {
                     t ++
                     // mode = MODE_PAIRING
                 }
-                radio.setGroup(MASTER_GROUP)
+                // radio.setGroup(MASTER_GROUP)
                 basic.pause(500)
             }
         })
