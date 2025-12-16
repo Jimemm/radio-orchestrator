@@ -334,6 +334,7 @@ namespace myextension {
 
         // assignment loop
         control.inBackground(function () {
+            let t = 0
             while (true) {
 
                 // assign controllers
@@ -362,6 +363,12 @@ namespace myextension {
                     }
                 }
 
+                if (t > 5) {
+                    mode = MODE_PAIRING
+                    radio.setGroup(MASTER_GROUP)
+                    t = 0
+                }
+
                 if (mode === MODE_START) {
                     for (let i = 0; i < controllers.length; i++) {
                         let id = controllers[i]
@@ -373,6 +380,7 @@ namespace myextension {
                         let id = devices[i]
                         radio.sendValue(MSG_START, id)
                     }
+                    t ++
                 } else if (mode === MODE_STOP) {
                     for (let i = 0; i < controllers.length; i++) {
                         let g = i + 2
@@ -390,7 +398,7 @@ namespace myextension {
                         radio.sendValue(MSG_STOP, id)
                         serial.writeLine("G(" + g + ") Stop Device: " + id)
                     }
-                    
+                    t ++
                     // mode = MODE_PAIRING
                 }
                 radio.setGroup(MASTER_GROUP)
