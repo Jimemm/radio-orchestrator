@@ -23,7 +23,7 @@ namespace myextension {
 
     const MASTER_GROUP = 1
     const HEARTBEAT_INTERVAL = 500
-    const PAIR_INTERVAL = 200
+    const PAIR_INTERVAL = 50
     const PEER_TIMEOUT = 10 * HEARTBEAT_INTERVAL
 
     // message names
@@ -132,7 +132,7 @@ namespace myextension {
             }
 
             if (paired && name === MSG_ACK && value === myId) {
-                basic.showIcon(IconNames.Yes)
+                basic.showIcon(IconNames.Diamond)
                 radio.setGroup(group)
                 basic.showNumber(group)
                 serial.writeLine("[C] GOT ACK " + value)
@@ -162,12 +162,14 @@ namespace myextension {
                     radio.setGroup(MASTER_GROUP)
                     radio.sendValue(MSG_PAIR, myId)
                     basic.showIcon(IconNames.SmallDiamond)
+                    basic.showIcon(IconNames.SmallSquare)
+                    basic.showIcon(IconNames.Square)
                     serial.writeLine("[C] PAIR " + group)
                     basic.pause(PAIR_INTERVAL)
                 } else {
                     // heartbeat to peer
                     radio.sendValue(MSG_HEART, myId)
-                    serial.writeLine("[C] HEARTBEAT " + myId )
+                    serial.writeLine("[C] HEARTBEAT " + myId)
                     basic.pause(HEARTBEAT_INTERVAL)
                 }
 
@@ -222,6 +224,7 @@ namespace myextension {
                 serial.writeLine("[M] PAIR REQ " + r + ":" + value)
 
                 if (r === ROLE_CONTROLLER && controllers.indexOf(value) < 0) {
+                    basic.showIcon(IconNames.Triangle)
                     let next_available = controllers.indexOf(-1)
                     if (next_available >= 0) {
                         controllers[next_available] = value
@@ -233,8 +236,9 @@ namespace myextension {
                         serial.writeLine("[M] ADD CONTROLLER " + value)
                     }
 
-                } 
+                }
                 else if (r === ROLE_DEVICE && devices.indexOf(value) < 0) {
+                    basic.showIcon(IconNames.Target)
                     let next_available = devices.indexOf(-1)
                     if (next_available >= 0) {
                         devices[next_available] = value
@@ -246,6 +250,7 @@ namespace myextension {
                         serial.writeLine("[M] ADD DEVICE " + value)
                     }
                 }
+                basic.showIcon(IconNames.Chessboard)
             }
 
             // lost client
