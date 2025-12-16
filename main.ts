@@ -365,18 +365,20 @@ namespace myextension {
                     mode = MODE_PAIRING
                 } else if (mode === MODE_STOP) {
                     for (let i = 0; i < controllers.length; i++) {
-                        radio.setGroup(i)
-                        basic.showNumber(i)
+                        let g = i + 2
+                        radio.setGroup(g)
+                        basic.showNumber(g)
                         let id = controllers[i]
                         radio.sendValue(MSG_STOP, id)
-                        serial.writeLine("G(" + i + ") Stop Controller: " + id)
+                        serial.writeLine("G(" + g + ") Stop Controller: " + id)
                     }
                     for (let i = 0; i < devices.length; i++) {
-                        radio.setGroup(i)
-                        basic.showNumber(i)
+                        let g = i + 2
+                        radio.setGroup(g)
+                        basic.showNumber(g)
                         let id = devices[i]
                         radio.sendValue(MSG_STOP, id)
-                        serial.writeLine("G(" + i + ") Stop Device: " + id)
+                        serial.writeLine("G(" + g + ") Stop Device: " + id)
                     }
                     radio.setGroup(MASTER_GROUP)
                     mode = MODE_PAIRING
