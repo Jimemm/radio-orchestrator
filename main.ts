@@ -157,6 +157,7 @@ namespace myextension {
             } else if (mode === "start") {
                 radio.setGroup(group)
                 basic.showNumber(group)
+                mode = "pairing"
             } else {
                 if (!paired && name === myId.toString()) {
                     paired = true
