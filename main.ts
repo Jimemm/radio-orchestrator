@@ -292,7 +292,7 @@ namespace myextension {
                         radio.setGroup(MASTER_GROUP)
                         radio.sendValue(id.toString(), g)
                     } else {
-                        radio.sendValue(MSG_ACK, controllers[i])
+                        radio.sendValue(MSG_ACK, devices[i])
                     }
                 }
 
