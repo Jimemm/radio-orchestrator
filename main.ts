@@ -390,9 +390,10 @@ namespace myextension {
                         radio.sendValue(MSG_STOP, id)
                         serial.writeLine("G(" + g + ") Stop Device: " + id)
                     }
-                    radio.setGroup(MASTER_GROUP)
+                    
                     // mode = MODE_PAIRING
                 }
+                radio.setGroup(MASTER_GROUP)
                 basic.pause(500)
             }
         })
