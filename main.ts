@@ -32,6 +32,8 @@ namespace myextension {
     const MSG_C_ACK = "c"
     const MSG_HEART = "h"
     const MSG_LOST = "l"
+    const MSG_START = "st"
+    const MSG_STOP = "sp"
 
     // role numbers for encoding
     const ROLE_CONTROLLER = 1
@@ -43,6 +45,7 @@ namespace myextension {
 
     let started = false
     let role: MyRole = MyRole.Device
+    let mode = "pairing"
 
     // client state
     let paired = false
@@ -58,6 +61,34 @@ namespace myextension {
 
     let controllers_ack: boolean[] = []
     let devices_ack: boolean[] = []
+
+    // =========================
+    // CONTROLS
+    // =========================
+
+    //% block="Start All"
+    export function startMode(): void {
+        if (role !== MyRole.Master) return
+
+        mode = "start"
+        serial.writeLine("[M] MODE: START")
+    }
+
+    //% block="Stop All"
+    export function stopMode(): void {
+        if (role !== MyRole.Master) return
+
+        mode = "stop"
+        serial.writeLine("[M] MODE: STOP")
+    }
+
+    //% block="Pairing Mode"
+    export function pairingMode(): void {
+        if (role !== MyRole.Master) return
+
+        mode = "pairing"
+        serial.writeLine("[M] MODE: START")
+    }
 
 
     // =========================
@@ -108,6 +139,8 @@ namespace myextension {
         group = 0
         peerId = 0
 
+        mode = "pairing"
+
         code = randint(1, 99999)
 
         let roleNum = (role === MyRole.Controller)
@@ -118,39 +151,48 @@ namespace myextension {
 
         radio.onReceivedValue(function (name: string, value: number) {
 
-            if (!paired && name === myId.toString()) {
-                paired = true
-                group = value
-                basic.showNumber(group)
-                serial.writeLine("[C] GROUP " + group)
-                // return
-            }
-
-            if (paired && name === myId.toString()) {
-                radio.sendValue(MSG_C_ACK, myId)
-                serial.writeLine("[C] SENT ACK " + myId)
-            }
-
-            if (paired && name === MSG_ACK && value === myId) {
-                basic.showIcon(IconNames.Diamond)
+            if (mode === "stop") {
+                basic.showIcon(IconNames.No)
+                radio.setGroup(MASTER_GROUP)
+            } else if (mode === "start") {
                 radio.setGroup(group)
                 basic.showNumber(group)
-                serial.writeLine("[C] GOT ACK " + value)
-            }
+            } else {
+                if (!paired && name === myId.toString()) {
+                    paired = true
+                    group = value
+                    basic.showNumber(group)
+                    serial.writeLine("[C] GROUP " + group)
+                    // return
+                }
 
-            if (peerId == 0) {
-                if (name == MSG_HEART) {
-                    peerId = value
+                if (paired && name === myId.toString()) {
+                    radio.sendValue(MSG_C_ACK, myId)
+                    serial.writeLine("[C] SENT ACK " + myId)
+                }
+
+                if (paired && name === MSG_ACK && value === myId) {
+                    basic.showIcon(IconNames.Diamond)
+                    radio.setGroup(group)
+                    basic.showNumber(group)
+                    serial.writeLine("[C] GOT ACK " + value)
+                }
+
+                if (peerId == 0) {
+                    if (name == MSG_HEART) {
+                        peerId = value
+                        lastPeerSeen = control.millis()
+                        serial.writeLine("[C] FOUND PEER " + peerId)
+                    }
+                }
+
+                // heartbeat from peer (on paired group)
+                if (paired && name === MSG_HEART && value === peerId) {
+                    serial.writeLine("[C] PEER REFRESS" + peerId)
                     lastPeerSeen = control.millis()
-                    serial.writeLine("[C] FOUND PEER " + peerId)
                 }
             }
 
-            // heartbeat from peer (on paired group)
-            if (paired && name === MSG_HEART && value === peerId) {
-                serial.writeLine("[C] PEER REFRESS" + peerId)
-                lastPeerSeen = control.millis()
-            }
         })
 
         // pairing + heartbeat sender
@@ -273,35 +315,56 @@ namespace myextension {
 
         // assignment loop
         control.inBackground(function () {
-
             while (true) {
-                // assign controllers
-                for (let i = 0; i < controllers_ack.length; i++) {
-                    if (!controllers_ack[i]) {
+                if (mode === "pairing") {
+                    // assign controllers
+                    for (let i = 0; i < controllers_ack.length; i++) {
+                        if (!controllers_ack[i]) {
+                            let id = controllers[i]
+                            let g = i + 2
+                            serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
+                            radio.setGroup(MASTER_GROUP)
+                            radio.sendValue(id.toString(), g)
+                        } else {
+                            radio.sendValue(MSG_ACK, controllers[i])
+                        }
+                    }
+
+                    // assign devices
+                    for (let i = 0; i < devices_ack.length; i++) {
+                        if (!devices_ack[i]) {
+                            let id = devices[i]
+                            let g = i + 2
+                            serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
+                            radio.setGroup(MASTER_GROUP)
+                            radio.sendValue(id.toString(), g)
+                        } else {
+                            radio.sendValue(MSG_ACK, devices[i])
+                        }
+                    }
+
+                    basic.pause(500)
+                } else if (mode === "start") {
+                    for (let i = 0; i < controllers.length; i++) {
                         let id = controllers[i]
-                        let g = i + 2
-                        serial.writeLine("[M] ASSIGN CONTROLLER " + id + " -> G" + g)
-                        radio.setGroup(MASTER_GROUP)
-                        radio.sendValue(id.toString(), g)
-                    } else {
-                        radio.sendValue(MSG_ACK, controllers[i])
+                        radio.sendValue(MSG_START, id)
                     }
-                }
-
-                // assign devices
-                for (let i = 0; i < devices_ack.length; i++) {
-                    if (!devices_ack[i]) {
+                    for (let i = 0; i < devices.length; i++) {
                         let id = devices[i]
-                        let g = i + 2
-                        serial.writeLine("[M] ASSIGN DEVICE " + id + " -> G" + g)
-                        radio.setGroup(MASTER_GROUP)
-                        radio.sendValue(id.toString(), g)
-                    } else {
-                        radio.sendValue(MSG_ACK, devices[i])
+                        radio.sendValue(MSG_START, id)
+                    }
+                } else if (mode === "stop") {
+                    for (let i = 0; i < controllers.length; i++) { 
+                        radio.setGroup(i)
+                        let id = controllers[i]
+                        radio.sendValue(MSG_STOP, id)
+                    }
+                    for (let i = 0; i < devices.length; i++) { 
+                        radio.setGroup(i)
+                        let id = devices[i]
+                        radio.sendValue(MSG_STOP, id)
                     }
                 }
-
-                basic.pause(500)
             }
         })
     }
