@@ -393,7 +393,7 @@ namespace myextension {
                         serial.writeLine("G(" + g + ") Stop Device: " + id)
                     }
                     radio.setGroup(MASTER_GROUP)
-                    mode = MODE_PAIRING
+                    // mode = MODE_PAIRING
                 }
                 basic.pause(500)
             }
