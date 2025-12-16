@@ -172,7 +172,7 @@ namespace myextension {
                 radio.setGroup(group)
                 basic.showNumber(group)
                 mode = MODE_PAIRING
-            } else {
+            } else if (mode !== MODE_STOP) {
                 if (!paired && name === myId.toString()) {
                     paired = true
                     group = value
