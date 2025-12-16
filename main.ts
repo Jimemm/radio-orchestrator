@@ -225,7 +225,7 @@ namespace myextension {
         // loss detection
         control.inBackground(function () {
             while (true) {
-                if (paired && peerId != 0 && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
+                if (mode =="pairing" && paired && peerId != 0 && control.millis() - lastPeerSeen > PEER_TIMEOUT) {
 
                     peerId = 0
 
@@ -360,13 +360,17 @@ namespace myextension {
                 } else if (mode === "stop") {
                     for (let i = 0; i < controllers.length; i++) {
                         radio.setGroup(i)
+                        basic.showNumber(i)
                         let id = controllers[i]
                         radio.sendValue(MSG_STOP, id)
+                        serial.writeLine("G(" + i + ") Stop Controller: " + id)
                     }
                     for (let i = 0; i < devices.length; i++) {
                         radio.setGroup(i)
+                        basic.showNumber(i)
                         let id = devices[i]
                         radio.sendValue(MSG_STOP, id)
+                        serial.writeLine("G(" + i + ") Stop Device: " + id)
                     }
                 }
             }
