@@ -172,32 +172,34 @@ namespace myextension {
                 radio.setGroup(group)
                 basic.showNumber(group)
                 mode = MODE_PAIRING
-            } else if (mode !== MODE_STOP) {
-                if (!paired && name === myId.toString()) {
-                    paired = true
-                    group = value
-                    basic.showNumber(group)
-                    serial.writeLine("[C] GROUP " + group)
-                    // return
-                }
+            } else {
+                if (mode !== MODE_STOP) {
+                    if (!paired && name === myId.toString()) {
+                        paired = true
+                        group = value
+                        basic.showNumber(group)
+                        serial.writeLine("[C] GROUP " + group)
+                        // return
+                    }
 
-                if (paired && name === myId.toString()) {
-                    radio.sendValue(MSG_C_ACK, myId)
-                    serial.writeLine("[C] SENT ACK " + myId)
-                }
+                    if (paired && name === myId.toString()) {
+                        radio.sendValue(MSG_C_ACK, myId)
+                        serial.writeLine("[C] SENT ACK " + myId)
+                    }
 
-                if (paired && name === MSG_ACK && value === myId) {
-                    basic.showIcon(IconNames.Diamond)
-                    radio.setGroup(group)
-                    basic.showNumber(group)
-                    serial.writeLine("[C] GOT ACK " + value)
-                }
+                    if (paired && name === MSG_ACK && value === myId) {
+                        basic.showIcon(IconNames.Diamond)
+                        radio.setGroup(group)
+                        basic.showNumber(group)
+                        serial.writeLine("[C] GOT ACK " + value)
+                    }
 
-                if (peerId == 0) {
-                    if (name == MSG_HEART) {
-                        peerId = value
-                        lastPeerSeen = control.millis()
-                        serial.writeLine("[C] FOUND PEER " + peerId)
+                    if (peerId == 0) {
+                        if (name == MSG_HEART) {
+                            peerId = value
+                            lastPeerSeen = control.millis()
+                            serial.writeLine("[C] FOUND PEER " + peerId)
+                        }
                     }
                 }
 
