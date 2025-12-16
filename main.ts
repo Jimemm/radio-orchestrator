@@ -151,10 +151,13 @@ namespace myextension {
 
         radio.onReceivedValue(function (name: string, value: number) {
 
-            if (mode === "stop") {
+            if (name === MSG_STOP && value === myId) {
                 basic.showIcon(IconNames.No)
                 radio.setGroup(MASTER_GROUP)
-            } else if (mode === "start") {
+                mode = "stop"
+            }
+
+            if (mode === "stop" && name === MSG_START && value === myId) {
                 radio.setGroup(group)
                 basic.showNumber(group)
                 mode = "pairing"
@@ -355,12 +358,12 @@ namespace myextension {
                         radio.sendValue(MSG_START, id)
                     }
                 } else if (mode === "stop") {
-                    for (let i = 0; i < controllers.length; i++) { 
+                    for (let i = 0; i < controllers.length; i++) {
                         radio.setGroup(i)
                         let id = controllers[i]
                         radio.sendValue(MSG_STOP, id)
                     }
-                    for (let i = 0; i < devices.length; i++) { 
+                    for (let i = 0; i < devices.length; i++) {
                         radio.setGroup(i)
                         let id = devices[i]
                         radio.sendValue(MSG_STOP, id)
