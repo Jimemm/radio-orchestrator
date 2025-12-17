@@ -70,6 +70,45 @@ namespace radioOrchestrator {
     let controllers_ack: boolean[] = []
     let devices_ack: boolean[] = []
 
+
+    // =========================
+    // ID HELPERS
+    // =========================
+
+    function makeId(roleNum: number, code: number): number {
+        return roleNum * 100000 + code
+    }
+
+    function getRole(id: number): number {
+        return Math.idiv(id, 100000)
+    }
+
+    // =========================
+    // START
+    // =========================
+
+    /**
+     * Initialize the radio orchestrator and set this device's role
+     */
+    //% block="start radio orchestrator as %r"
+    //% r.defl=MyRole.Device
+    //% weight=100
+    //% group="Common"
+    export function start(r: MyRole): void {
+        if (started) return
+        started = true
+        role = r
+
+        radio.setGroup(MASTER_GROUP)
+
+        if (role === MyRole.Master) {
+            startMaster()
+        } else {
+            startClient()
+        }
+    }
+
+
     // =========================
     // CONTROLS
     // =========================
@@ -78,7 +117,6 @@ namespace radioOrchestrator {
      * Tell all controllers and devices to start operating
      */
     //% block="start all clients"
-    //% group="OLED" color=#00B1ED
     //% help=radioOrchestrator/startMode
     //% group="Master controls"
     //% weight=90
@@ -118,42 +156,6 @@ namespace radioOrchestrator {
     }
 
 
-    // =========================
-    // ID HELPERS
-    // =========================
-
-    function makeId(roleNum: number, code: number): number {
-        return roleNum * 100000 + code
-    }
-
-    function getRole(id: number): number {
-        return Math.idiv(id, 100000)
-    }
-
-    // =========================
-    // START
-    // =========================
-
-    /**
-     * Initialize the radio orchestrator and set this device's role
-     */
-    //% block="start radio orchestrator as %r"
-    //% r.defl=MyRole.Device
-    //% weight=100
-    //% group="Common"
-    export function start(r: MyRole): void {
-        if (started) return
-        started = true
-        role = r
-
-        radio.setGroup(MASTER_GROUP)
-
-        if (role === MyRole.Master) {
-            startMaster()
-        } else {
-            startClient()
-        }
-    }
 
     // =========================
     // CLIENT (controller/device)
