@@ -16,6 +16,7 @@ enum MyRole {
 
 //% color=#5C2D91 icon="\uf0e8"
 //% groups=['Common','Master controls']
+//% defaultGroup="Common"
 //% blockGap=8
 namespace radioOrchestrator {
 
