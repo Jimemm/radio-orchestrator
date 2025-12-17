@@ -73,6 +73,15 @@ namespace radioOrchestrator {
     // =========================
 
     /**
+     * ---- Master controls ----
+     */
+    //% block="master's controls"
+    //% shim=TD_NOOP
+    //% weight=90
+    export function __masterControls(): void {
+    }
+
+    /**
      * Tell all controllers and devices to start operating
      */
     //% block="start all clients"
