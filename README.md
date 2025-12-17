@@ -1,24 +1,99 @@
+# 📡 Radio Orchestrator
 
-> Άνοιγμα αυτής της σελίδας στο [https://jimemm.github.io/ptx-autopairing/](https://jimemm.github.io/ptx-autopairing/)
+**Radio Orchestrator** is a MakeCode extension for the BBC micro:bit that lets you build **coordinated radio networks** using three roles:
 
-## Χρήση ως επέκταση
+- **Master**
+- **Controller**
+- **Device**
 
-Αυτό το αποθετήριο μπορεί να προστεθεί ως **επέκταση** στο MakeCode.
+The Master automatically pairs Controllers and Devices, monitors connectivity, recovers from disconnections, and can remotely **start** and **stop** all clients.
 
-* άνοιγμα [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* κάντε κλικ στο **Νέο Έργο**
-* κάντε κλικ στις **Επεκτάσεις** στο μενού με το γρανάζι
-* αναζήτηση για **https://github.com/jimemm/ptx-autopairing** και εισαγωγή
+This extension is designed for:
+- Classrooms
+- Robotics projects
+- Multi-micro:bit systems
+- Reliable radio coordination
 
-## Επεξεργασία αυτού του έργου
+---
 
-Για επεξεργασία αυτού του αποθετηρίου στο MakeCode.
+## ✨ Key Features
 
-* άνοιγμα [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* κάντε κλικ στην **Εισαγωγή** και έπειτα στην **Εισαγωγή διεύθυνσης URL**
-* επικολλήστε **https://github.com/jimemm/ptx-autopairing** και κάντε κλικ στην εισαγωγή
+- 🔗 Automatic pairing of Controllers and Devices  
+- 📡 Dedicated pairing and control channel  
+- 💓 Heartbeat monitoring between peers  
+- 🔁 Automatic recovery when devices disconnect  
+- ▶️ Start / Stop commands sent by the Master  
+- 🧠 Self-healing radio network  
+- 🧩 Simple, beginner-friendly Blocks API  
 
-#### Μεταδεδομένα (χρησιμοποιούνται για αναζητήσεις, απόδοση)
+---
 
-* for PXT/microbit
-<script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>
+## 🧠 System Overview
+
+The system uses **radio groups** to separate responsibilities:
+
+| Radio Group | Purpose |
+|------------|--------|
+| Group 1 | Pairing, control, recovery (Master channel) |
+| Group ≥ 2 | Controller ↔ Device communication |
+
+### Roles
+
+#### 🟣 Master
+- Manages pairing
+- Assigns radio groups
+- Detects lost devices
+- Sends Start / Stop commands
+
+#### 🔵 Controller
+- Pairs with the Master
+- Communicates with a Device
+- Monitors peer availability
+
+#### 🟢 Device
+- Pairs with the Master
+- Communicates with a Controller
+- Responds to Start / Stop commands
+
+---
+
+## 🚀 Getting Started
+
+### 1️⃣ Add the Extension
+Add **Radio Orchestrator** to your MakeCode project using the **Extensions** menu.
+
+---
+
+### 2️⃣ Program the Master
+
+```blocks
+on start
+  start radio orchestrator as Master
+
+on button A pressed
+  allow new devices to pair
+
+on button B pressed
+  start all clients
+
+on logo pressed
+  stop all clients
+```
+
+---
+
+### 3️⃣ Program the Controller
+
+```blocks
+on start
+  start radio orchestrator as Controller
+```
+---
+
+
+### 4️⃣ Program the Device
+
+```blocks
+on start
+  start radio orchestrator as Device
+```

@@ -6,16 +6,16 @@
  */
 
 enum MyRole {
-    //% block="master"
+    //% block="Master"
     Master,
-    //% block="controller"
+    //% block="Controller"
     Controller,
-    //% block="device"
+    //% block="Device"
     Device
 }
 
-//% color=#333333 icon="\uf11c"
-namespace myextension {
+//% color=#5C2D91 icon="\uf0e8"
+namespace radioOrchestrator {
 
     // =========================
     // CONSTANTS / PROTOCOL
@@ -72,7 +72,11 @@ namespace myextension {
     // CONTROLS
     // =========================
 
-    //% block="Start All"
+    /**
+     * Tell all controllers and devices to start operating
+     */
+    //% block="start all clients"
+    //% help=radioOrchestrator/startMode
     export function startMode(): void {
         if (role !== MyRole.Master) return
 
@@ -80,7 +84,11 @@ namespace myextension {
         serial.writeLine("[M] MODE: START")
     }
 
-    //% block="Stop All"
+    /**
+     * Tell all controllers and devices to stop operating
+     */
+    //% block="stop all clients"
+    //% help=radioOrchestrator/stopMode
     export function stopMode(): void {
         if (role !== MyRole.Master) return
 
@@ -88,12 +96,16 @@ namespace myextension {
         serial.writeLine("[M] MODE: STOP")
     }
 
-    //% block="Pairing Mode"
+    /**
+     * Put the system back into pairing mode
+     */
+    //% block="enable pairing mode"
+    //% help=radioOrchestrator/pairingMode
     export function pairingMode(): void {
         if (role !== MyRole.Master) return
 
         mode = MODE_PAIRING
-        serial.writeLine("[M] MODE: START")
+        serial.writeLine("[M] MODE: PAIRING")
     }
 
 
@@ -114,9 +126,9 @@ namespace myextension {
     // =========================
 
     /**
-     * Start my extension
+     * Initialize the radio orchestrator and set this device's role
      */
-    //% block="start my extension as %r"
+    //% block="start radio orchestrator as %r"
     //% r.defl=MyRole.Device
     //% weight=100
     export function start(r: MyRole): void {
@@ -380,7 +392,7 @@ namespace myextension {
                         let id = devices[i]
                         radio.sendValue(MSG_START, id)
                     }
-                    t ++
+                    t++
                 } else if (mode === MODE_STOP) {
                     for (let i = 0; i < controllers.length; i++) {
                         let g = i + 2
@@ -398,7 +410,7 @@ namespace myextension {
                         radio.sendValue(MSG_STOP, id)
                         serial.writeLine("G(" + g + ") Stop Device: " + id)
                     }
-                    t ++
+                    t++
                     // mode = MODE_PAIRING
                 }
                 // radio.setGroup(MASTER_GROUP)
