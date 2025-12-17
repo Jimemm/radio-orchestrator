@@ -15,6 +15,8 @@ enum MyRole {
 }
 
 //% color=#5C2D91 icon="\uf0e8"
+//% groups=['Common','Master controls']
+//% blockGap=8
 namespace radioOrchestrator {
 
     // =========================
@@ -78,6 +80,8 @@ namespace radioOrchestrator {
     //% block="start all clients"
     //% group="OLED" color=#00B1ED
     //% help=radioOrchestrator/startMode
+    //% group="Master controls"
+    //% weight=90
     export function startMode(): void {
         if (role !== MyRole.Master) return
 
@@ -90,6 +94,8 @@ namespace radioOrchestrator {
      */
     //% block="stop all clients"
     //% help=radioOrchestrator/stopMode
+    //% group="Master controls"
+    //% weight=80
     export function stopMode(): void {
         if (role !== MyRole.Master) return
 
@@ -102,6 +108,8 @@ namespace radioOrchestrator {
      */
     //% block="enable pairing mode"
     //% help=radioOrchestrator/pairingMode
+    //% group="Master controls"
+    //% weight=70
     export function pairingMode(): void {
         if (role !== MyRole.Master) return
 
@@ -132,6 +140,7 @@ namespace radioOrchestrator {
     //% block="start radio orchestrator as %r"
     //% r.defl=MyRole.Device
     //% weight=100
+    //% group="Common"
     export function start(r: MyRole): void {
         if (started) return
         started = true
